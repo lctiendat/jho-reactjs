@@ -12,7 +12,7 @@ const Contact = () => {
 
     const { contacts: list } = useContacts()
 
-    const [isModalOpen, setModalOpen] = useState(false);
+    const [isModalOpen, setModalOpen] = useState(false);    
 
     const handleAddContact = async () => {
         setModalOpen(false);
@@ -96,7 +96,7 @@ const Contact = () => {
                                             {Array.isArray(contact.tags) && contact.tags.map((tag, i) => (
                                                 <span
                                                     key={i}
-                                                    className={`inline-flex items-center px-1 text-xs font-medium rounded-lg bg-[${tag.color_code}]`}
+                                                    className={`inline-flex items-center text-white px-1 text-xs font-medium rounded-lg bg-red-500`}
                                                 >
                                                     {tag.name}
                                                 </span>

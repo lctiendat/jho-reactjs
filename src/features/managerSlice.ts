@@ -21,14 +21,12 @@ const initialState: ManagerState = {
 };
 
 export const fetchManagers = createAsyncThunk('manager/fetchManagers', async () => {
-    
-    const token = localStorage.getItem('jho-token');
-    console.log(token);
-    
 
-    const response = await axios.get(API_BASE_URL + 'managers',{
-        headers:{
-            'Authorization' : `Bearer ${localStorage.getItem('jho-token')}`
+    const token = localStorage.getItem('jho-token')
+
+    const response = await axios.get(API_BASE_URL + 'managers', {
+        headers: {
+            'Authorization': `Bearer ${token}`
         }
     });
 

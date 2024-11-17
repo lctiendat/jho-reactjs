@@ -24,7 +24,12 @@ const initialState: ContactState = {
 };
 
 export const fetchContacts = createAsyncThunk('contact/fetchContacts', async () => {
-    const response = await axios.get(API_BASE_URL + 'contacts');
+    const token = localStorage.getItem('jho-token')
+    const response = await axios.get(API_BASE_URL + 'contacts', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
 
     return response.data;
 });

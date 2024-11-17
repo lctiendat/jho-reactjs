@@ -22,7 +22,11 @@ const initialState: TagState = {
 
 // Fetch all tags
 export const fetchTags = createAsyncThunk('tag/fetchTags', async () => {
-    const response = await axios.get(API_BASE_URL + 'tags');
+    const response = await axios.get(API_BASE_URL + 'tags',{
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jho-token')}`
+        }
+    });
     return response.data;
 });
 
