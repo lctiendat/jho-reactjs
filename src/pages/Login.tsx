@@ -1,13 +1,10 @@
-// src/components/Login.tsx
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../hooks/userAuth';
 import { useNavigate } from 'react-router-dom';
-// import { useAuth } from '../hooks/useAuth';
 
-// Định nghĩa schema validation với zod
 const loginSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }).nonempty('Email is required'),
     password: z.string().min(6, { message: 'Password must be at least 6 characters' }).nonempty('Password is required'),
@@ -17,8 +14,6 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
     const { login, loading, error, user } = useAuth();
-
-    // Sử dụng useForm từ react-hook-form với zod resolver để áp dụng validation
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
         resolver: zodResolver(loginSchema),
     });
@@ -32,8 +27,10 @@ const Login: React.FC = () => {
     const handleLogin = async (data: LoginFormInputs) => {
         const { email, password } = data;
         login(email, password);
-
     };
+
+    // State to control password visibility
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
         <div className="min-h-screen flex justify-center items-center bg-gray-800">
@@ -51,16 +48,25 @@ const Login: React.FC = () => {
                         />
                         {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
                     </div>
-                    <div className="mb-6">
+                    <div className="mb-6 relative">
                         <label htmlFor="password" className="block text-gray-400">Password</label>
                         <input
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}  // Toggle password visibility
                             id="password"
                             {...register('password')}
                             className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
                             required
                         />
                         {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
+                        
+                        {/* Toggle button for password visibility */}
+                        <button
+                            type="button"
+                            className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400"
+                            onClick={() => setShowPassword(prev => !prev)}
+                        >
+                            {showPassword ? 'Hide' : 'Show'}
+                        </button>
                     </div>
                     {error && <p className="text-red-500 text-xs">{error}</p>}
                     <button

@@ -3,41 +3,56 @@ import NavigationTabs from "../components/NavigationTabs";
 import DashboardLayout from "../layouts/Dashboard";
 import { useContacts } from '../hooks/useContacts';
 import Modal from "../components/Modal";
-import ContactFormModal from "../components/Contact/ContactForm";
 import { useState } from "react";
 import ContactForm from "../components/Contact/ContactForm";
 
-
 const Contact = () => {
 
-    const { contacts: list } = useContacts()
+    const { contacts, getContacts, loading, removeContact } = useContacts();
+    const [isModalOpen, setModalOpen] = useState(false);
 
-    const [isModalOpen, setModalOpen] = useState(false);    
-
+    // Hàm gọi lại để lấy danh sách sau khi thêm mới
     const handleAddContact = async () => {
         setModalOpen(false);
+        await getContacts(); // Đảm bảo danh sách được tải lại sau khi thêm
+    };
+
+    // Hàm xử lý xóa liên hệ
+    const handleDeleteContact = async (id: number) => {
+        const isConfirmed = window.confirm('Are you sure you want to delete this contact?');
+        if (isConfirmed) {
+            await removeContact(id); // Chờ xóa liên hệ
+            await getContacts(); // Tải lại danh sách sau khi xóa
+            alert("Delete success");
+        }
     };
 
     return (
-        <>
-            <DashboardLayout>
-                <div className="flex justify-between items-center pb-4">
-                    <div className='flex items-center gap-3' onClick={() => setModalOpen(true)}>
-                        <button className="bg-orange-600 hover:bg-orange-500 text-white py-2 px-4 rounded flex items-center gap-2">
-                            <img
-                                src="/images/icon/plus.png"
-                                alt="Search"
-                                className=" left-2.5 top-2.5 w-4 h-4 text-white"
-                            />
-                            <p className='text-xs ' > Ajout de contact</p>
-                        </button>
-                        <p className='text-white text-sm font-semibold'>100 <span className='text-gray-400 font-normal'>Contacts</span></p>
-                    </div>
-                    <Filter />
-
+        <DashboardLayout>
+            <div className="flex justify-between items-center pb-4">
+                <div className='flex items-center gap-3' onClick={() => setModalOpen(true)}>
+                    <button className="bg-orange-600 hover:bg-orange-500 text-white py-2 px-4 rounded flex items-center gap-2">
+                        <img
+                            src="/images/icon/plus.png"
+                            alt="Search"
+                            className=" left-2.5 top-2.5 w-4 h-4 text-white"
+                        />
+                        <p className='text-xs ' >Ajout de contact</p>
+                    </button>
+                    <p className='text-white text-sm font-semibold'>100 <span className='text-gray-400 font-normal'>Contacts</span></p>
                 </div>
-                <NavigationTabs />
-                <div className="bg-[#17202E] p-6 rounded-lg shadow-lg mt-5">
+                <Filter />
+            </div>
+            <NavigationTabs />
+            <div className="bg-[#17202E] p-6 rounded-lg shadow-lg mt-5">
+                {loading ? (
+                    <div className="flex justify-center py-10">
+                        <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path fill="currentColor" d="M4 12a8 8 0 018-8v8h8"></path>
+                        </svg>
+                    </div>
+                ) : (
                     <table className="min-w-full divide-y divide-gray-700 text-sm">
                         <thead>
                             <tr>
@@ -69,7 +84,7 @@ const Contact = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-800">
-                            {Array.isArray(list.data) && list.data.map((contact, index) => (
+                            {Array.isArray(contacts) && contacts.map((contact, index) => (
                                 <tr key={index} className="hover:bg-gray-800">
                                     <td className="flex items-center">
                                         <input id="checked-checkbox" type="checkbox" value="" className="w-4 h-4 text-red-600  border-gray-300 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
@@ -77,7 +92,6 @@ const Contact = () => {
                                             <div className="text-white">{contact.name}</div>
                                             <div className="text-gray-400 text-xs">Particulier</div>
                                         </div>
-
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-gray-300">
                                         {contact.email}
@@ -104,12 +118,14 @@ const Contact = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center text-gray-400">
-                                        <button className="mr-3 hover:text-white"><img
-                                            src="/images/icon/edit.png"
-                                            alt="Search"
-                                            className="w-4 h-4 text-white"
-                                        /></button>
-                                        <button className="hover:text-red-600">
+                                        <button className="mr-3 hover:text-white">
+                                            <img
+                                                src="/images/icon/edit.png"
+                                                alt="Search"
+                                                className="w-4 h-4 text-white"
+                                            />
+                                        </button>
+                                        <button className="hover:text-red-600" onClick={() => handleDeleteContact(contact.id)}>
                                             <img
                                                 src="/images/icon/trash.png"
                                                 alt="Search"
@@ -121,23 +137,23 @@ const Contact = () => {
                             ))}
                         </tbody>
                     </table>
+                )}
 
-                    {/* Phân trang */}
-                    <div className="flex justify-between items-center pt-4 text-gray-400">
-                        <span>Éléments par page: 25 | 1-25 sur 500 éléments</span>
-                        <div className="flex space-x-2">
-                            <button className="hover:text-white">◀</button>
-                            <span className="text-white">01</span>
-                            <button className="hover:text-white">▶</button>
-                        </div>
+                {/* Phân trang */}
+                <div className="flex justify-between items-center pt-4 text-gray-400">
+                    <span>Éléments par page: 25 | 1-25 sur 500 éléments</span>
+                    <div className="flex space-x-2">
+                        <button className="hover:text-white">◀</button>
+                        <span className="text-white">01</span>
+                        <button className="hover:text-white">▶</button>
                     </div>
-                    <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
-                        <h2 className="text-white text-lg mb-4">Add New Contact</h2>
-                        <ContactForm onSubmit={handleAddContact} onClose={() => setModalOpen(false)} />
-                    </Modal>
                 </div>
-            </DashboardLayout>
-        </>
+                <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
+                    <h2 className="text-white text-lg mb-4">Add New Contact</h2>
+                    <ContactForm onSuccess={handleAddContact} onClose={() => setModalOpen(false)} />
+                </Modal>
+            </div>
+        </DashboardLayout>
     );
 };
 

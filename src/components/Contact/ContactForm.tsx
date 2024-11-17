@@ -5,13 +5,16 @@ import { z } from 'zod';
 import { useTags } from '../../hooks/useTags';
 import { useState } from 'react';
 import { useManagers } from '../../hooks/useManagers';
+import { useContacts } from '../../hooks/useContacts';
+import { useDispatch } from 'react-redux';
+import { resetError } from '../../features/contactSlice';
 
 const ContactSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
   email: z.string().email({ message: 'Invalid email address' }),
   phone: z.string().min(1, { message: 'Phone is required' }),
   tags: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
-  manager: z.string().optional()
+  // managed_by: z.number().min(1, { message: 'Manager is required' }),
 });
 
 type ContactFormInputs = z.infer<typeof ContactSchema>;
@@ -20,28 +23,33 @@ type ContactFormInputs = z.infer<typeof ContactSchema>;
 interface ContactFormProps {
   onSubmit: (data: ContactFormInputs) => void;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
+const ContactForm: React.FC<ContactFormProps> = ({ onClose, onSuccess }) => {
   const { register, reset, handleSubmit, control, formState: { errors } } = useForm<ContactFormInputs>({
     resolver: zodResolver(ContactSchema),
   });
 
   const { tags } = useTags()
   const { managers } = useManagers()
+  const { addContact, error, success } = useContacts()
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedManager, setSelectedManager] = useState<string>('');
+  const dispatch = useDispatch()
+
 
   const onSubmit = async (data: any) => {
     const contactData = {
       ...data,
       tags: selectedTags.map((tag: any) => tag.id),
-      manager: selectedManager?.id
+      managed_by: selectedManager?.id
     };
-    console.log(contactData);
 
-    // dispatch(createContact(contactData));
+    addContact(contactData);
+    dispatch(resetError())
     onClose();
+    onSuccess()
     reset();
   };
 
@@ -58,6 +66,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Name Field */}
+      {!success && error && <p className="text-red-500 text-xs">{error}</p>}
+
       <div>
         <label className="block text-gray-400">Name</label>
         <input
@@ -91,11 +101,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
       <div>
         <label className="block text-gray-400">Manager</label>
         <Controller
-          name="tags"
+          name="managed_by"
           control={control}
           render={({ field }) => (
             <Select
               {...field}
+              {...register('managed_by')}
+
               options={managers.data}
               className="basic-multi-select text-black"
               classNamePrefix="select"
@@ -106,6 +118,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
             />
           )}
         />
+        {errors.managed_by && <p className="text-red-500 text-xs">{errors.managed_by.message}</p>}
+
       </div>
       <div>
         <label className="block text-gray-400">Tags</label>
@@ -132,7 +146,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
         <button type="button" onClick={onClose} className="bg-gray-600 py-2 px-4 rounded">
           Cancel
         </button>
-        <button type="submit" className="bg-green-600 py-2 px-4 rounded">
+        <button type="submit" className="bg-[#DD5313] text-white py-2 px-4 rounded">
           Add Contact
         </button>
       </div>

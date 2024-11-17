@@ -25,8 +25,8 @@ export const loginUser = createAsyncThunk(
     'user/loginUser',
     async (credentials: { email: string; password: string }, { rejectWithValue }) => {
         try {
-            const response = await axios.post(API_BASE_URL + 'login', credentials);
-            
+            const response = await axios.post(API_BASE_URL + 'auth/login', credentials);
+
             localStorage.setItem('jho-token', response.data.data.token)
 
             return response.data.data;
@@ -40,7 +40,21 @@ export const loginUser = createAsyncThunk(
 
 // Đăng xuất
 export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
-    return null;
+    try {
+        const response = await axios.get(API_BASE_URL + 'auth/logout', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jho-token')}`
+            }
+        });
+
+        localStorage.clear()
+
+        return response.data.data;
+    } catch (err: any) {
+        console.log(err);
+
+        return rejectWithValue(err.response.data);
+    }
 });
 
 const userSlice = createSlice({

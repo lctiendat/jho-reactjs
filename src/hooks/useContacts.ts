@@ -12,16 +12,19 @@ import { useEffect } from 'react';
 
 export const useContacts = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { contacts, contact, loading, error } = useSelector((state: RootState) => state?.contact);
+  const { contacts, contact, loading, error,success } = useSelector((state: RootState) => state?.contact);
 
   useEffect(() => {
     dispatch(fetchContacts());
   }, [dispatch]);
 
+  const getContacts = () => {
+    dispatch(fetchContacts());
+  }
   const getContact = (id: number) => dispatch(fetchContactById(id));
   const addContact = (newContact: Partial<IContact>) => dispatch(createContact(newContact));
   const editContact = (updatedContact: IContact) => dispatch(updateContact(updatedContact));
   const removeContact = (id: number) => dispatch(deleteContact(id));
 
-  return { contacts, contact, loading, error, getContact, addContact, editContact, removeContact };
+  return { contacts, contact, loading, error,success, getContact, addContact, editContact, removeContact, getContacts };
 };
